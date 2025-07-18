@@ -1,0 +1,29 @@
+# Python and cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.log
+
+# OS 
+.DS_Store
+*.swp
+
+# Virtual environment
+.venv/
+env/
+venv/
+
+# Project Specific
+microsoft_services.db
+*.csv
+*.sqlite3
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+$ VSCode
+.vscode/
+
+# dotenv / secrets
+.env
