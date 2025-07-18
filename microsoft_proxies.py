@@ -88,7 +88,7 @@ def update_database(db_path="microsoft_services.db"):
             c.execute("INSERT INTO tags VALUES (?, ?)", (tag, prefix))
 
     prefixes = {row[0] for row in c.execute("SELECT DISTINCT prefix FROM tags")}
-    print(f"🔍 Performing parallel ASN lookups for {len(prefixes)} prefixes...")
+    print(f"Performing parallel ASN lookups for {len(prefixes)} prefixes...")
 
     def lookup_asn(prefix):
         ip = prefix.split('/')[0]
