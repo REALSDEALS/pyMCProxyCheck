@@ -101,7 +101,7 @@ def update_database(db_path="microsoft_services.db"):
             return None
 
     asn_set = set()
-    with ThreadPoolExecutor(max_workers=75) as executor:  # You can change this number. My advice is to keep it under 100.
+    with ThreadPoolExecutor(max_workers=20) as executor:  # Reduced to 20 to avoid rate-limiting (IP banning)
         future_to_prefix = {executor.submit(lookup_asn, p): p for p in prefixes}
         for i, future in enumerate(as_completed(future_to_prefix), 1):
             prefix = future_to_prefix[future]
@@ -125,6 +125,10 @@ def export_csv(db_path="microsoft_services.db"):
     """
     Export tags/prefixes and ASNs to separate CSV files.
     """
+    if not os.path.exists(db_path):
+        print(f"Error: Database '{db_path}' not found. Please run with --update first.")
+        return False
+
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
 
@@ -141,11 +145,16 @@ def export_csv(db_path="microsoft_services.db"):
             writer.writerow([asn])
 
     conn.close()
+    return True
 
 def check_ips(ips, db_path="microsoft_services.db"):
     """
     Check a list of IP addresses against the database and return results.
     """
+    if not os.path.exists(db_path):
+        print(f"Error: Database '{db_path}' not found. Please run with --update first.")
+        return []
+
     conn = sqlite3.connect(db_path)
     c = conn.cursor()
     results = []
@@ -162,9 +171,12 @@ def check_ips(ips, db_path="microsoft_services.db"):
             if not info["trusted"]:
                 rdap = IPWhois(ip_str).lookup_rdap(asn_methods=['dns','whois'])
                 asn = int(rdap.get('asn', 0))
-                if asn and any(asn == row[0] for row in c.execute("SELECT asn FROM asns")):
-                    info["trusted"] = True
-                    info["details"].append(f"ASN {asn}")
+                # Check if ASN exists in database efficiently
+                if asn:
+                    c.execute("SELECT 1 FROM asns WHERE asn=?", (asn,))
+                    if c.fetchone():
+                        info["trusted"] = True
+                        info["details"].append(f"ASN {asn}")
         except Exception as e:
             info["details"].append(f"Error: {e}")
 
@@ -184,8 +196,8 @@ def main():
         update_database()
         print("Database updated.")
     if args.export:
-        export_csv()
-        print("CSV files generated: microsoft_trusted_prefixes.csv, microsoft_asns.csv")
+        if export_csv():
+            print("CSV files generated: microsoft_trusted_prefixes.csv, microsoft_asns.csv")
     if args.check_ip:
         results = check_ips(args.check_ip)
         for r in results:
