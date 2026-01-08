@@ -60,5 +60,6 @@ python microsoft_proxies.py --export
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Copyright
-© 2025 REALSDEALS  
+© 2026 REALSDEALS  
 You are free to use, modify, and distribute this software, provided that the original license and copyright notice are included in all copies or substantial portions of the software.
+- Check `CloudReveal` for a superseded version.
